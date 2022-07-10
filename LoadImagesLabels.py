@@ -3,8 +3,8 @@ import numpy as np
 import os
 
 
-TRAIN_DIR = 'dataset/train/'
-TEST_DIR = 'dataset/test/'
+# TRAIN_DIR = 'dataset/train/'
+# TEST_DIR = 'dataset/test/'
 
 
 class LoadImagesLabels:
@@ -24,12 +24,12 @@ class LoadImagesLabels:
     #     [3] for i in rects_len) - y
     #     return (x, y, w, h)
 
-    def load_images(self, path):
+    def load_data(self, path, is_train_data):
         self.flattened_images = np.empty((0, self.new_width * self.new_height))
         files = os.listdir(path)
         for file_name in files:
-            file_name = path + file_name
-            read_img = cv2.imread(file_name)
+            file_path = path + file_name
+            read_img = cv2.imread(file_path)
             img_gray = cv2.cvtColor(read_img, cv2.COLOR_BGR2GRAY)
             img_blurred = cv2.GaussianBlur(img_gray, (5, 5), 0)
             img_thresh = cv2.adaptiveThreshold(img_blurred,                           # input image
@@ -73,6 +73,7 @@ class LoadImagesLabels:
             cropped_resized_img = cv2.resize(cropped_img, (30, 30))
             flatten_img = cropped_resized_img.reshape((1, 30 * 30))
             self.flattened_images = np.append(self.flattened_images, flatten_img, 0)
+            # self.flattened_images = np.float32(self.flattened_images)
 
             self.load_labels(file_name)
 
@@ -86,9 +87,16 @@ class LoadImagesLabels:
 
         float_labels = np.array(self.labels, np.float32)
         final_labels = float_labels.reshape((float_labels.size, 1))
-
-        np.savetxt('flattened_images.txt', self.flattened_images)
-        np.savetxt('final_labels.txt', final_labels)
+        # print(final_labels)
+        # print('float labels done...')
+        # print(self.flattened_images)
+        # print('flat images done...')
+        # moved this functionality to a class method
+        # np.savetxt('flattened_images_float32.txt', self.flattened_images)
+        # np.savetxt('final_labels.txt', final_labels)
+        if is_train_data:
+            self.save_file('flattened_images.txt', self.flattened_images)
+            self.save_file('final_labels.txt', final_labels)
 
         # cv2.destroyAllWindows()
     # end load_images
@@ -96,24 +104,12 @@ class LoadImagesLabels:
 
 
     def load_labels(self, file_name):
-        print(str(file_name[len(TRAIN_DIR):file_name.find('_')]))
-        self.labels.append(file_name[len(TRAIN_DIR):file_name.find('_')])
+        print(str(file_name[:file_name.find('_')]))
+        self.labels.append(file_name[:file_name.find('_')])
     # end load_labels
 
 
+    def save_file(self, path, src):
+        np.savetxt(path, src)
+    # end save_file
 
-
-
-#=====================================================================
-
-def main():
-    train = LoadImagesLabels()
-    train.load_images(TRAIN_DIR)
-    print('Loaded all test data...')
-    # test = LoadImagesLabels()
-    # test.load_images(TEST_DIR)
-    # print('Loaded all train data...')
-
-
-if __name__ == '__main__':
-    main()
