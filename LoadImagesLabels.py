@@ -11,6 +11,7 @@ class LoadImagesLabels:
 
     flattened_images = []
     labels = []
+    final_labels = []
     new_width = 30
     new_height = 30
     min_contour_area = 10
@@ -73,9 +74,12 @@ class LoadImagesLabels:
             cropped_resized_img = cv2.resize(cropped_img, (30, 30))
             flatten_img = cropped_resized_img.reshape((1, 30 * 30))
             self.flattened_images = np.append(self.flattened_images, flatten_img, 0)
-            # self.flattened_images = np.float32(self.flattened_images)
+            self.flattened_images = np.float32(self.flattened_images)
 
-            self.load_labels(file_name)
+
+
+            if is_train_data:
+                self.load_labels(file_name)
 
             # cv2.imshow('box character', read_img)
             # cv2.imshow('cropped image', cropped_img)
@@ -84,9 +88,9 @@ class LoadImagesLabels:
             # end for
         # end for
 
+        # for img in self.flattened_images:
+        #     print(img.dtype())
 
-        float_labels = np.array(self.labels, np.float32)
-        final_labels = float_labels.reshape((float_labels.size, 1))
         # print(final_labels)
         # print('float labels done...')
         # print(self.flattened_images)
@@ -95,8 +99,10 @@ class LoadImagesLabels:
         # np.savetxt('flattened_images_float32.txt', self.flattened_images)
         # np.savetxt('final_labels.txt', final_labels)
         if is_train_data:
+            float_labels = np.array(self.labels, np.float32)
+            self.final_labels = float_labels.reshape((float_labels.size, 1))
             self.save_file('flattened_images.txt', self.flattened_images)
-            self.save_file('final_labels.txt', final_labels)
+            self.save_file('final_labels.txt', self.final_labels)
 
         # cv2.destroyAllWindows()
     # end load_images
@@ -104,7 +110,7 @@ class LoadImagesLabels:
 
 
     def load_labels(self, file_name):
-        print(str(file_name[:file_name.find('_')]))
+        # print(str(file_name[:file_name.find('_')]))
         self.labels.append(file_name[:file_name.find('_')])
     # end load_labels
 
