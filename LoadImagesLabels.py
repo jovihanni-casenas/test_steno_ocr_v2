@@ -13,7 +13,7 @@ class LoadImagesLabels:
     labels = []
     new_width = 30
     new_height = 30
-    min_contour_area = 100
+    min_contour_area = 10
 
     # def union(rects):
     #     rects_len = range(len(rects))
@@ -25,7 +25,7 @@ class LoadImagesLabels:
     #     return (x, y, w, h)
 
     def load_images(self, path):
-        flattened_images = np.empty((0, self.new_width * self.new_height))
+        self.flattened_images = np.empty((0, self.new_width * self.new_height))
         files = os.listdir(path)
         for file_name in files:
             file_name = path + file_name
@@ -38,7 +38,7 @@ class LoadImagesLabels:
                                       cv2.THRESH_BINARY_INV,                # invert so foreground will be white, background will be black
                                       11,                                   # size of a pixel neighborhood used to calculate threshold value
                                       2)
-            cv2.imshow("img_thresh", img_thresh)
+            # cv2.imshow("img_thresh", img_thresh)
 
             img_thresh_copy = img_thresh.copy()
             contours, heirarchy = cv2.findContours(img_thresh_copy, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -72,25 +72,32 @@ class LoadImagesLabels:
             # must resize image to make all images uniform
             cropped_resized_img = cv2.resize(cropped_img, (30, 30))
             flatten_img = cropped_resized_img.reshape((1, 30 * 30))
-            self.flattened_images.append(flatten_img)
+            self.flattened_images = np.append(self.flattened_images, flatten_img, 0)
 
             self.load_labels(file_name)
 
-            cv2.imshow('box character', read_img)
-            cv2.imshow('cropped image', cropped_img)
-            cv2.waitKey(0)
+            # cv2.imshow('box character', read_img)
+            # cv2.imshow('cropped image', cropped_img)
+            # cv2.waitKey(0)
 
             # end for
         # end for
 
-        cv2.destroyAllWindows()
+
+        float_labels = np.array(self.labels, np.float32)
+        final_labels = float_labels.reshape((float_labels.size, 1))
+
+        np.savetxt('flattened_images.txt', self.flattened_images)
+        np.savetxt('final_labels.txt', final_labels)
+
+        # cv2.destroyAllWindows()
     # end load_images
 
 
 
     def load_labels(self, file_name):
-        print(str(file_name[len(TRAIN_DIR):len(file_name) - 4]))
-        self.labels.append(file_name[:len(file_name)-4])
+        print(str(file_name[len(TRAIN_DIR):file_name.find('_')]))
+        self.labels.append(file_name[len(TRAIN_DIR):file_name.find('_')])
     # end load_labels
 
 
@@ -103,9 +110,9 @@ def main():
     train = LoadImagesLabels()
     train.load_images(TRAIN_DIR)
     print('Loaded all test data...')
-    test = LoadImagesLabels()
-    test.load_images(TEST_DIR)
-    print('Loaded all train data...')
+    # test = LoadImagesLabels()
+    # test.load_images(TEST_DIR)
+    # print('Loaded all train data...')
 
 
 if __name__ == '__main__':
